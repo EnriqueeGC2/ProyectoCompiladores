@@ -1,13 +1,26 @@
+import os
 import ply.lex as lex
+from html import escape
+
+open ('bitacora_errores.html', 'w').close()
 
 # Lista de nombres de tokens
 tokens = (
-    #RESERVADAS
+    # Tipos de datos
+    'ENTERO',
+    'CARACTER',
+    'LOGICO',
+    'REAL',
+    # Palabra reservadas 
+    'DEFINIR',
+    'COMO',
     'FIN',
     'ALGORITMO',
     'CADENAS',
-    'LETRAS',
+    'VARIABLES',
     'NUMERO',
+    'SIMBOLOS',
+    # Funciones y estructuras de control
     'ESCRIBIR',
     'LEER',
     'PARA',
@@ -17,34 +30,80 @@ tokens = (
     'HACER',
     'SI',
     'SINO',
-    'DE_OTRO_MODO'
+    'DE_OTRO_MODO',
     'ENTONCES',
+    'CONVERTIRATEXTO',
+    'CONVERTIRANUMERO',
+    'COMENTARIO',
+    #OPERADORES RELACIONALES
     'ES_MAYOR_QUE',
     'ES_MENOR_QUE',
     'ES_IGUAL_QUE',
     'ES_MAYOR_O_IGUAL_QUE',
     'ES_MENOR_O_IGUAL_QUE',
     'ES_DISTINTO_QUE',
-    #OPERADORES LOGICOS
-    'Y',
-    'O',
-    'NO',
     #OPERADORES ARITMETICOS
     'MAS',
     'MENOS',
     'POR',
     'DIVIDIDO',
-    'ELEVADO_A',
+    'POTENCIA',
     'RESIDUO',
-    #FUNCIONES
-    'CONVERTIRATEXTO',
-    'CONVERTIRANUMERO',
-    'COMENTARIO'
+    #OPERADORES LOGICOS
+    'Y',
+    'O',
+    'NO',
+    #SIMBOLOS Y CARACTERES
+    'A_COM',
+    'C_COM',
+    'A_PAR',
+    'C_PAR',
+    'DOS_P',
+    'P_COM',
+    'COMA',
 )
 
-# Expresión regular para palabras clave
-#t_ALGORITMO = r'Algoritmo'  
-t_ignore = ' \n'
+# Expresión regular para palabras clave 
+
+t_ignore = ' \t'
+
+def t_newline(t):
+    r'\n+'
+    t.lexer.lineno += len(t.value)
+
+# Tipos de datos
+def t_ENTERO(t):
+    r'Entero'
+    return t
+
+def t_CARACTER(t):
+    r'Caracter'
+    return t
+
+def t_LOGICO(t):
+    r'Logico'
+    return t
+
+def t_REAL(t):
+    r'Real'
+    return t
+# Palabras reservadas
+def t_ALGORITMO(t):
+    r'Algoritmo'
+    return t
+
+def t_FIN(t):
+    r'Fin(Algoritmo|Para|Segun|Mientras|Funcion)'
+    return t  
+
+def t_DEFINIR(t):
+    r'Definir'
+    return t
+
+def t_COMO(t):
+    r'Como'
+    return t
+
 def t_ESCRIBIR(t):
     r'Escribir'
     return t
@@ -53,6 +112,7 @@ def t_LEER(t):
     r'Leer'
     return t
 
+# Funciones y estructuras de control
 def t_PARA(t):
     r'Para'
     return t
@@ -69,6 +129,10 @@ def t_SEGUN(t):
     r'Segun'
     return t
 
+def t_DE_OTRO_MODO(t):
+    r'De_Otro_Modo'
+    return t
+
 def t_HACER(t):
     r'Hacer'
     return t
@@ -81,21 +145,14 @@ def t_SINO(t):
     r'Sino'
     return t
 
-def t_DE_OTRO_MODO(t):
-    r'De otro modo'
-    return t
-
 def t_ENTONCES(t):
     r'Entonces'
     return t
 
-def t_ALGORITMO(t):
-    r'Algoritmo'
+def t_COMENTARIO(t):
+    r'Comentario'
     return t
 
-def t_FIN(t):
-    r'Fin(Algoritmo|Para|Segun|Mientras|Funcion)'
-    return t  
 # OPERADORES 
 def t_MAS(t):
     r'\+'
@@ -113,8 +170,9 @@ def t_DIVIDIDO(t):
     r'/'
     return t
 
-def t_ELEVADO_A(t):
-    r'\^'
+def t_POTENCIA(t):
+    r'Potencia'
+    t.value = '**'
     return t
 
 def t_RESIDUO(t):
@@ -122,46 +180,105 @@ def t_RESIDUO(t):
     return t
 
 def t_ES_MAYOR_QUE(t):
-    r'>'
+    r'Es_Mayor_Que' 
+    t.value = '>'
     return t
 
 def t_ES_MENOR_QUE(t):
-    r'<'
+    r'Es_Menor_Que'
     return t
 
 def t_ES_IGUAL_QUE(t):
-    r'=='
+    r'Es_Igual_Que'
+    t.value = '=='
     return t
 
 def t_ES_MAYOR_O_IGUAL_QUE(t):
-    r'>='
+    r'Es_Mayor_O_Igual_Que'
+    t.value = '>='
     return t
 
 def t_ES_MENOR_O_IGUAL_QUE(t):
-    r'<='
+    r'Es_Menor_O_Igual_Que'
+    t.value = '<='
     return t
 
 def t_ES_DISTINTO_QUE(t):
-    r'!='
+    r'Es_Distinto_Que'
+    t.value = '!='
     return t
 
-def t_LETRAS(t):
-    r'[a-zA-Z]+'
+#OPERADORES LOGICOS
+def t_Y(t):
+    r'Y'
+    t.value = '&&' # Reemplazar el token por el valor '&&'
+    return t
+
+def t_O(t):
+    r'O'
+    t.value = '||' # Reemplazar el token por el valor '||'
+    return t
+
+def t_NO(t):
+    r'NO'
+    t.value = '!' # Reemplazar el token por el valor '!'
+    return t
+
+#Simbolos y caracteres
+def t_A_COM(t):
+    r'A_Com'
+    t.value = "'" # Reemplazar el token por el valor '/'
+    return t
+
+def t_C_COM(t):
+    r'C_Com'
+    t.value = "'" # Reemplazar el token por el valor '/'
+    return t
+
+def t_A_PAR(t):
+    r'\('
+    return t
+
+def t_C_PAR(t):
+    r'\)'
+    return t
+
+def t_DOS_P(t):
+    r'Dos_P'
+    t.value = ':'
+    return t
+
+def t_P_COM(t):
+    r'P_Com'
+    t.value = ';'
+    return t
+
+def t_COMA(t):
+    r'Coma'
+    t.value = ','
+    return t
+
+def t_VARIABLES(t):
+    #r'[a-zA-Z]+'
+    r'[a-z]+|(A-Z)+' # Expresión regular para variables
     return t
 
 def t_CADENAS(t):
-    r'[a-zA-Z_][a-zA-Z]*'
-    if t.value.lower() == 'algoritmo':
-        t.type = 'ALGORITMO'  # Cambia el tipo de token
+    r'[a-zA-Z_][_a-zA-Z]*' # Expresión regular para cadenas'
     return t  
 
 def t_NUMERO(t):
     r'\d*\.?\d+' # Expresión regular para números decimales y enteros
     return t
 
+def t_SIMBOLOS(t):
+    r'\w+'
+    return t
+
 # Función de manejo de errores
 def t_error(t):
-    print(f"\nCarácter no reconocido: '{t.value[0]}'")
+    with open('bitacora_errores.html', 'a') as file:
+        file.write(f"<p> Carácter no reconocido: ' {t.value[0]} ' | Linea: {t.lineno} | Posición: {t.lexpos}<p>\n")
     t.lexer.skip(1)
 
 # Crear el analizador léxico
@@ -180,6 +297,21 @@ if __name__ == '__main__':
     # Alimentar el analizador léxico con el código fuente
     lexer.input(codigo_fuente)
 
-    # Obtener los tokens
-    for tokens in lexer:
-        print('\nToken: ',tokens.type, '| Valor: ',tokens.value, '| Linea: ',tokens.lineno, '| Posicion: ',tokens.lexpos)
+    with open("tabla_simbolos.html", "w") as archivo_html:
+    # Escribir el encabezado del HTML
+        archivo_html.write("<!DOCTYPE html>\n<html>\n<head>\n<title>Tabla de Símbolos</title>\n</head>\n<body>\n")
+
+    # Escribir el encabezado de la tabla
+        archivo_html.write("<table border='1'>\n<tr>\n<th>Token</th>\n<th>Valor</th>\n<th>Línea</th>\n<th>Posición</th>\n</tr>\n")
+
+    # Iterar sobre los tokens y escribir cada fila de la tabla
+        for tokens in lexer:
+            archivo_html.write("<tr>\n")
+            archivo_html.write(f"<td>{escape(tokens.type)}</td>\n")  # Escapar para evitar inyección de HTML
+            archivo_html.write(f"<td>{escape(tokens.value)}</td>\n")  # Escapar para evitar inyección de HTML
+            archivo_html.write(f"<td>{tokens.lineno}</td>\n")
+            archivo_html.write(f"<td>{tokens.lexpos}</td>\n")
+            archivo_html.write("</tr>\n")
+
+    # Cerrar la tabla y el cuerpo del HTML
+        archivo_html.write("</table>\n</body>\n</html>")

@@ -1,8 +1,26 @@
+Dos_P
 Algoritmo
 AlgorItmo
-
+Escribir A_Com Hola Mundo, Algoritmo C_Com 
++
+-
+/
+Y
+O
+NO
+Potencia
+a 2 Potencia 5
+Potencia
+Definir a Como Entero
+Es_Distinto_Que
+Es_Mayor_Que
+Es_Menor_Que
+ES_MENOR_QUE
+De_Otro_Modo
 FinAlgoritmo
-
 *
 }
 {
+    "
+    ;
+    *
